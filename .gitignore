@@ -1,0 +1,22 @@
+# Rust build artifacts
+/target
+**/*.rs.bk
+
+# Node / frontend
+node_modules/
+crates/persist-app/ui/dist/
+crates/persist-app/ui/node_modules/
+*.tsbuildinfo
+
+# Tauri generates these during the build; they are not source.
+crates/persist-app/gen/
+
+# OS / editor noise
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local Persist state (never commit a real repository or credentials)
+.persist/
+*.token.json

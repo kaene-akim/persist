@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+    font-feature-settings: "ss01" on;
+    overflow: hidden;
+  }
+
+  ::selection {
+    @apply bg-moss/30 text-ink;
+  }
+
+  *:focus-visible {
+    outline: 2px solid theme("colors.moss");
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-bg;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-line border-2 border-solid border-bg;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-line2;
+  }
+}
+
+@layer components {
+  /* A faint ordered-dither texture, the one place the pixel-art influence is
+     purely decorative. Used only on empty states and the sidebar header. */
+  .dither {
+    background-image: radial-gradient(
+      rgba(147, 172, 106, 0.12) 1px,
+      transparent 1px
+    );
+    background-size: 4px 4px;
+  }
+
+  .panel {
+    @apply bg-panel border border-line;
+  }
+
+  .hairline {
+    @apply border-line;
+  }
+
+  .field {
+    @apply w-full bg-bg border border-line px-3 py-2 text-sm text-ink
+      placeholder:text-faint focus:border-moss focus:outline-none;
+  }
+
+  .label {
+    @apply text-xs font-medium text-muted;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,32 @@
+[package]
+name = "persist-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Command-line interface for Persist."
+
+[[bin]]
+name = "persist"
+path = "src/main.rs"
+
+[dependencies]
+persist-core = { workspace = true }
+clap = { version = "4", features = ["derive", "env", "wrap_help"] }
+clap_complete = "4"
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }
+indicatif = "0.17"
+console = "0.15"
+humansize = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+rpassword = "7"
+dialoguer = "0.11"
+
+[dev-dependencies]
+tempfile = { workspace = true }
