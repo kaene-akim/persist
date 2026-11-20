@@ -49,10 +49,44 @@ Local folder          Google Drive
 ## Requirements
 
 - Linux (developed and tested on Arch Linux), macOS, or Windows.
-- For the CLI: a Rust toolchain to build from source.
+- To build from source: a Rust toolchain. The desktop app additionally needs
+  Node.js/npm and the WebKitGTK stack (see the install guide).
 - For Google Drive: your own OAuth client (see
   [docs/google-oauth.md](docs/google-oauth.md)). The local backend needs no
   account at all.
+
+## Install the full application (Arch Linux)
+
+A full install gives you both front ends and registers the desktop app with
+your application launcher:
+
+| Package | What it installs | Command |
+| --- | --- | --- |
+| `persist` | CLI, shell completions, docs | `persist` |
+| `persist-desktop` | Desktop app, launcher entry, icons | `persist-desktop` |
+
+From a checkout, one command builds and installs both:
+
+```bash
+git clone https://github.com/kaene-akim/persist.git
+cd persist/packaging/arch
+makepkg -si
+```
+
+Then verify and launch:
+
+```bash
+persist --version                  # persist 0.1.0
+command -v persist-desktop
+```
+
+Open your **application launcher** and search for **Persist** — for example,
+press Super in GNOME and type `Persist`, open the KDE application menu, or type
+`Persist` into Rofi/Walker on niri. Select the entry named **Persist** to start
+the desktop app. You can also run `persist-desktop` in a terminal. The first
+window walks you through creating or recovering a repository; see
+[docs/install-arch.md](docs/install-arch.md) for the complete guide, manual and
+user-level installs, and launcher troubleshooting.
 
 ## Quick start (local repository — no account needed)
 
@@ -105,7 +139,7 @@ persist pull --yes       # restore the latest snapshot
 
 | Document | Contents |
 | --- | --- |
-| [docs/install-arch.md](docs/install-arch.md) | Building and installing on Arch Linux |
+| [docs/install-arch.md](docs/install-arch.md) | Full installation on Arch Linux: dependencies, PKGBUILD, manual install, launcher setup |
 | [docs/cli.md](docs/cli.md) | Complete command reference |
 | [docs/backup-restore.md](docs/backup-restore.md) | Day-to-day backup and recovery guide |
 | [docs/google-oauth.md](docs/google-oauth.md) | Creating an OAuth client and configuring Persist |

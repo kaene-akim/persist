@@ -86,6 +86,8 @@ Exit code `3` always means authentication.
 | Frontend build fails on `esbuild` postinstall | Install scripts blocked by npm | Run `npm install` again, or approve the script (`npm install-scripts approve esbuild`). |
 | `frontendDist … doesn't exist` | `ui/dist` not built | `cd crates/persist-app/ui && npm run build`. |
 | App window is blank | Frontend not rebuilt after changes | Rebuild the frontend, then rebuild the app. |
+| Persist is missing from the application launcher | `persist-desktop` package not installed, or desktop database/cache is stale | Reinstall it (`makepkg -si --pkg persist-desktop`), log out and back in, then `update-desktop-database /usr/share/applications` (or `~/.local/share/applications` for a user-level install). |
+| Launcher entry does nothing | `persist-desktop` is not on `PATH`, or the frontend is missing | Check `command -v persist-desktop`; run it in a terminal to see the error, then rebuild `crates/persist-app/ui` and the app. |
 | CLI prints no progress bar | Not a TTY, or `--json` | Expected: bars are TTY-only. |
 
 ## Getting more detail

@@ -1,10 +1,7 @@
 # Maintainer: Persist contributors
-# Builds from a tagged git source. `sha256sums=('SKIP')` is correct for git
-# sources; if you switch to a release tarball, replace it with the real digest.
-#
-# Building from a local checkout instead of the remote:
-#   git archive --format=tar.gz --prefix=persist-0.1.0/ -o persist-0.1.0.tar.gz HEAD
-#   # then change `source` to the local tarball and set its sha256.
+# Builds the current main branch from GitHub. `sha256sums=('SKIP')` is correct
+# for git sources; if you switch to a release tarball, replace it with the real
+# digest. For a pinned release, change `#branch=main` to `#tag=v${pkgver}`.
 
 pkgbase=persist
 pkgname=(persist persist-desktop)
@@ -12,12 +9,12 @@ pkgver=0.1.0
 pkgrel=1
 pkgdesc="Incremental, versioned, content-addressable backups to Google Drive"
 arch=('x86_64' 'aarch64')
-url="https://github.com/persist-app/persist"
+url="https://github.com/kaene-akim/persist"
 license=('MIT')
 depends=('gcc-libs')
 makedepends=('git' 'rust' 'cargo' 'nodejs' 'npm' 'pkgconf'
              'webkit2gtk-4.1' 'gtk3' 'libsoup3')
-source=("git+${url}.git#tag=v${pkgver}")
+source=("git+${url}.git#branch=main")
 sha256sums=('SKIP')
 
 build() {
@@ -25,9 +22,9 @@ build() {
 
   # Build the React frontend first: the Tauri backend embeds ui/dist at compile
   # time, so it must exist before cargo compiles persist-app.
-  ( cd crates/persist-app/ui && npm install --no-audit --no-fund && npm run build )
+  ( cd crates/persist-app/ui && npm ci --no-audit --no-fund && npm run build )
 
-  cargo build --release --workspace --frozen
+  cargo build --release --workspace --locked
 }
 
 package_persist() {
@@ -63,21 +60,33 @@ package_persist-desktop() {
     "$pkgdir/usr/bin/persist-desktop"
 
   # Icons.
+  install -Dm644 crates/persist-app/icons/32x32.png \
+    "$pkgdir/usr/share/icons/hicolor/32x32/apps/persist.png"
   install -Dm644 crates/persist-app/icons/128x128.png \
     "$pkgdir/usr/share/icons/hicolor/128x128/apps/persist.png"
+  install -Dm644 crates/persist-app/icons/128x128@2x.png \
+    "$pkgdir/usr/share/icons/hicolor/256x256/apps/persist.png"
   install -Dm644 crates/persist-app/icons/icon.png \
     "$pkgdir/usr/share/icons/hicolor/512x512/apps/persist.png"
 
-  # Desktop entry.
+  # Desktop entry — this is what makes the app appear in the launcher.
   install -d "$pkgdir/usr/share/applications"
   cat > "$pkgdir/usr/share/applications/persist.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
+Version=1.0
 Name=Persist
+GenericName=Backup Utility
 Comment=Incremental, versioned backups
 Exec=persist-desktop
 Icon=persist
 Terminal=false
 Categories=Utility;Archiving;FileTools;
+Keywords=backup;restore;snapshots;drive;
+StartupWMClass=persist-desktop
 EOF
+
+  install -Dm644 README.md "$pkgdir/usr/share/doc/persist-desktop/README.md"
+  install -Dm644 docs/install-arch.md \
+    "$pkgdir/usr/share/doc/persist-desktop/install-arch.md"
 }

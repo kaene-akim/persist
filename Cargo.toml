@@ -11,7 +11,7 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT"
 authors = ["Persist contributors"]
-repository = "https://github.com/persist-app/persist"
+repository = "https://github.com/kaene-akim/persist"
 
 [workspace.dependencies]
 persist-core = { path = "crates/persist-core" }
