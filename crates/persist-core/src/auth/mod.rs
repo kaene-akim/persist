@@ -251,7 +251,11 @@ impl AuthManager {
 
     /// Return a valid access token, refreshing it if necessary.
     pub async fn access_token(&self) -> Result<String> {
-        let current = match self.cache.lock().clone() {
+        // Drop the cache guard before the `None` arm: parking_lot's Mutex is
+        // not reentrant, and a temporary guard would otherwise live until the
+        // end of the match, deadlocking on the second lock below.
+        let cached = { self.cache.lock().clone() };
+        let current = match cached {
             Some(t) => Some(t),
             None => {
                 let t = self.store.load()?;

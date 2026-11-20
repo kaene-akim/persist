@@ -81,13 +81,24 @@ impl Session {
         Ok(auth)
     }
 
+    /// Get the current auth manager, or build one from the saved OAuth client
+    /// configuration. Read-only call sites use this so a freshly started CLI or
+    /// GUI process sees credentials stored by an earlier `persist login`.
+    fn auth_for_read(&self) -> Option<Arc<AuthManager>> {
+        self.auth
+            .clone()
+            .or_else(|| AuthManager::load(&self.paths).ok().map(Arc::new))
+    }
+
     /// Build an auth manager even when no OAuth client is configured yet.
     pub fn auth_opt(&self) -> Option<Arc<AuthManager>> {
-        self.auth.clone()
+        self.auth_for_read()
     }
 
     pub fn is_connected(&self) -> bool {
-        self.auth.as_ref().map(|a| a.is_connected()).unwrap_or(false)
+        self.auth_for_read()
+            .map(|a| a.is_connected())
+            .unwrap_or(false)
     }
 
     /// Run the interactive Google OAuth flow.
@@ -106,7 +117,7 @@ impl Session {
 
     /// Forget the stored credentials.
     pub fn disconnect_google(&mut self) -> Result<()> {
-        if let Some(auth) = &self.auth {
+        if let Some(auth) = self.auth_for_read() {
             auth.disconnect()?;
         }
         self.db.add_activity(
@@ -121,10 +132,7 @@ impl Session {
 
     /// Fetch the connected account profile.
     pub async fn account(&self) -> Result<UserInfo> {
-        let auth = self
-            .auth
-            .clone()
-            .ok_or(Error::NotConnected)?;
+        let auth = self.auth_for_read().ok_or(Error::NotConnected)?;
         auth.account().await
     }
 
@@ -187,14 +195,14 @@ impl Session {
 
     /// Build (or reuse) the storage backend.
     pub async fn storage(&self) -> Result<StorageRef> {
-        if let Some(s) = self.storage.lock().await.clone() {
+        let cached = { self.storage.lock().await.clone() };
+        if let Some(s) = cached {
             return Ok(s);
         }
         let storage: StorageRef = match self.config.backend {
             BackendKind::GoogleDrive => {
                 let auth = self
-                    .auth
-                    .clone()
+                    .auth_for_read()
                     .ok_or_else(|| Error::Config("Google Drive backend requires authentication".into()))?;
                 if !auth.is_connected() {
                     return Err(Error::NotConnected);
@@ -215,7 +223,10 @@ impl Session {
                 Arc::new(LocalStorage::new(path))
             }
         };
-        *self.storage.lock().await = Some(storage.clone());
+        {
+            let mut guard = self.storage.lock().await;
+            *guard = Some(storage.clone());
+        }
         Ok(storage)
     }
 
@@ -227,13 +238,17 @@ impl Session {
 
     /// Open the configured repository, if it exists.
     pub async fn repository(&self) -> Result<Arc<Repository>> {
-        if let Some(r) = self.repo.lock().await.clone() {
+        let cached = { self.repo.lock().await.clone() };
+        if let Some(r) = cached {
             return Ok(r);
         }
         let storage = self.storage().await?;
         let repo = Repository::open(storage).await?;
         let repo = Arc::new(repo);
-        *self.repo.lock().await = Some(repo.clone());
+        {
+            let mut guard = self.repo.lock().await;
+            *guard = Some(repo.clone());
+        }
         Ok(repo)
     }
 

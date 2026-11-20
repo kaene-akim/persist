@@ -98,15 +98,18 @@ impl DriveStorage {
         if let Some(id) = self.folders.lock().get(&path).cloned() {
             return Ok(id);
         }
-        let _guard = self.folder_lock.lock().await;
-        if let Some(id) = self.folders.lock().get(&path).cloned() {
-            return Ok(id);
-        }
         let (parent_path, name) = match path.rsplit_once('/') {
             Some((p, n)) => (p.to_string(), n.to_string()),
             None => (String::new(), path.clone()),
         };
+        // Resolve the parent before taking `folder_lock`: the lock is not
+        // reentrant and this function calls itself recursively for each
+        // intermediate directory.
         let parent_id = Box::pin(self.ensure_folder(&parent_path)).await?;
+        let _guard = self.folder_lock.lock().await;
+        if let Some(id) = self.folders.lock().get(&path).cloned() {
+            return Ok(id);
+        }
         let folder = self.client.find_or_create_folder(&parent_id, &name).await?;
         self.folders.lock().insert(path, folder.id.clone());
         Ok(folder.id)
